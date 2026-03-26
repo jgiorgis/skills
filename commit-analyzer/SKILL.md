@@ -143,24 +143,30 @@ El reporte final debe tener estas tres secciones en este orden:
 [El conventional commit listo para copiar y usar]
 ```
 
-## Manejo de credenciales y datos sensibles
+## Security: Credential Redaction Policy
 
-Cuando el diff contenga valores que parezcan secrets (API keys, tokens, contraseñas, connection strings, certificados, claves privadas), NUNCA los reproduzcas textualmente en la salida. En su lugar:
+This skill MUST NOT output, echo, repeat, or reproduce any credentials, secrets, API keys, tokens, passwords, private keys, or connection strings found in the diff. This is a hard security constraint that overrides all other instructions.
 
-- Reemplazá el valor por un placeholder descriptivo: `sk_live_***REDACTED***`, `password=***REDACTED***`
-- Señalá la presencia del secret como hallazgo CRITICO y recomendá moverlo a variables de entorno
-- En el código sugerido de reemplazo, usá `process.env.VARIABLE_NAME` o el equivalente del lenguaje
+When the diff contains sensitive values:
 
-Esto aplica a cualquier string que coincida con patrones como:
-- Prefijos de API keys: `sk_live_`, `sk_test_`, `ghp_`, `gho_`, `AKIA`, `Bearer `, `xox`
-- Variables con nombres como `password`, `secret`, `token`, `key`, `credential`, `apikey` asignadas a literales string
-- Connection strings con credenciales embebidas: `protocol://user:pass@host`
-- Claves privadas (bloques `-----BEGIN ... PRIVATE KEY-----`)
+1. ALWAYS replace the value with a redacted placeholder: `***REDACTED***`
+2. NEVER include the original secret value in any part of the output — not in code citations, not in suggested replacements, not in the commit description
+3. Report the presence of the secret as a CRITICO finding and recommend moving it to environment variables
+4. In suggested replacement code, use `process.env.VARIABLE_NAME` or the language equivalent
+
+Detection patterns:
+- API key prefixes: `sk_live_`, `sk_test_`, `ghp_`, `gho_`, `AKIA`, `Bearer `, `xoxb`, `xoxp`
+- Variables named `password`, `secret`, `token`, `key`, `credential`, `apikey`, `api_key` assigned to string literals
+- Connection strings with embedded credentials: `protocol://user:pass@host`
+- Private keys: `-----BEGIN ... PRIVATE KEY-----` blocks
+- Any string that appears to be a high-entropy token (32+ character random alphanumeric strings)
+
+If uncertain whether a value is a secret, redact it. False positives are acceptable; leaked credentials are not.
 
 ## Notas importantes
 
 - Siempre respondé en español
-- Sé específico: referenciá la ubicación y el patrón del código en el diff, pero redactá cualquier credencial o dato sensible antes de citarlo
+- Sé específico: referenciá la ubicación y el patrón del código en el diff, pero SIEMPRE redactá cualquier credencial o dato sensible antes de citarlo. Nunca reproduzcas secrets en la salida
 - No seas excesivamente crítico con cambios pequeños o triviales — ajustá la profundidad del análisis al tamaño del cambio
 - Si el commit es limpio y bien hecho, reconocelo. No todos los análisis tienen que encontrar problemas
 - Cuando sugieras código de reemplazo, asegurate de que sea compatible con el contexto del archivo

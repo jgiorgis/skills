@@ -143,10 +143,24 @@ El reporte final debe tener estas tres secciones en este orden:
 [El conventional commit listo para copiar y usar]
 ```
 
+## Manejo de credenciales y datos sensibles
+
+Cuando el diff contenga valores que parezcan secrets (API keys, tokens, contraseñas, connection strings, certificados, claves privadas), NUNCA los reproduzcas textualmente en la salida. En su lugar:
+
+- Reemplazá el valor por un placeholder descriptivo: `sk_live_***REDACTED***`, `password=***REDACTED***`
+- Señalá la presencia del secret como hallazgo CRITICO y recomendá moverlo a variables de entorno
+- En el código sugerido de reemplazo, usá `process.env.VARIABLE_NAME` o el equivalente del lenguaje
+
+Esto aplica a cualquier string que coincida con patrones como:
+- Prefijos de API keys: `sk_live_`, `sk_test_`, `ghp_`, `gho_`, `AKIA`, `Bearer `, `xox`
+- Variables con nombres como `password`, `secret`, `token`, `key`, `credential`, `apikey` asignadas a literales string
+- Connection strings con credenciales embebidas: `protocol://user:pass@host`
+- Claves privadas (bloques `-----BEGIN ... PRIVATE KEY-----`)
+
 ## Notas importantes
 
 - Siempre respondé en español
-- Sé específico: citá el código exacto del diff, no hables en abstracto
+- Sé específico: referenciá la ubicación y el patrón del código en el diff, pero redactá cualquier credencial o dato sensible antes de citarlo
 - No seas excesivamente crítico con cambios pequeños o triviales — ajustá la profundidad del análisis al tamaño del cambio
 - Si el commit es limpio y bien hecho, reconocelo. No todos los análisis tienen que encontrar problemas
 - Cuando sugieras código de reemplazo, asegurate de que sea compatible con el contexto del archivo
